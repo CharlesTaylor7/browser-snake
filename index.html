@@ -15,35 +15,35 @@
     tabindex="-1"
     x-data
     x-on:keydown.space="$store.snake.move()"
-    x-on:keydown.h="$store.snake.direction = 'left'"
-    x-on:keydown.l="$store.snake.direction = 'right'"
-    x-on:keydown.k="$store.snake.direction = 'up'"
-    x-on:keydown.j="$store.snake.direction = 'down'"
+    x-on:keydown.h="$store.snake.steer('left')"
+    x-on:keydown.l="$store.snake.steer('right')"
+    x-on:keydown.k="$store.snake.steer('up')"
+    x-on:keydown.j="$store.snake.steer('down')"
   >
     <main class="flex flex-col items-center gap-4 mt-4"> 
       <div>
         Score:
         <span x-text="$store.snake.score"></span>
       </div>
-      <table 
-        class="border-spacing-0"
-      >
+      <table class="border-spacing-0 border-collapse">
         <tbody>
           <template x-for="row in 10">
-            <tr class="border border-neutral" >
+            <tr class="border border-neutral">
               <template x-for="col in 10">
-                <td class="p-4 border border-neutral">
-                  <span 
-                    x-text="
-                      if ($store.snake.x === col - 1 && $store.snake.y === row - 1) {
-                       return $store.snake.icon()
-                      } else if ($store.food.x === col - 1 && $store.food.y === row - 1) {
-                        return row + col;
-                      } else {
-                        return '__'
-                      }
-                    "
-                  >
+                <td class="border border-neutral">
+                  <span class="flex h-7 w-7 items-center justify-center">
+                    <pre
+                      class="text-lg rotate-90"
+                      x-show="$store.grid[row - 1][col - 1].css_rotate"
+                      x-text="$store.grid[row - 1][col - 1].icon"
+                    >
+                    </pre>
+                    <pre
+                      class="text-lg"
+                      x-show="! $store.grid[row - 1][col - 1].css_rotate"
+                      x-text="$store.grid[row - 1][col - 1].icon"
+                    >
+                    </pre>
                   </span>
                 </td>
               </template>
@@ -54,55 +54,104 @@
     </main>
   </body>
   <script>
+    // utilities
+    function snake_icon(direction) {
+      if (direction === 'up') {
+        return '▲';
+      } else if (direction === 'down') {
+        return '▼';
+      } else if (direction === 'right') {
+        return '▶';
+      } else if (direction === 'left') {
+        return '◀';
+      } else {
+        return 'idk';
+      }
+    }
     // define object stores
     document.addEventListener('alpine:init', () => {
+      Alpine.store('empty', {
+        icon: ' ',
+      });
+      Alpine.store('grid', Array.from({length: 10}, () => Array.from({ length: 10 }, () => ' ')));
       Alpine.store('food', {
         x: 0,
         y: 0,
+        icon: '$',
         randomize() {
           while (true) {
             let x = Math.floor(Math.random() * 10);
             let y = Math.floor(Math.random() * 10);
             // ensure the food doesn't respawn in the same location 
             if (x != this.x || y != this.y) {
+              let grid = Alpine.store('grid');
+              grid[this.y][this.x] = Alpine.store('empty');
               this.x = x;
               this.y = y;
+              grid[y][x] = this;
               break;
             }
           }
         }
       });
       Alpine.store('snake', {
-        x: 0,
-        y: 0,
         speed: 0,
         score: 0,
-        direction: 'right',
-        icon() {
-          if (this.direction === 'up') {
-            return '▲';
-          } else if (this.direction === 'down') {
-            return '▼';
-          } else if (this.direction === 'right') {
-            return '▶';
-          } else if (this.direction === 'left') {
-            return '◀';
-          } else {
-            return 'idk';
-          }
+        segments: [{ 
+          x: 1,
+          y: 0,
+          icon: snake_icon('down'),
+          direction: 'down',
+        },{ 
+          x: 0,
+          y: 0,
+          icon: '=',
+          css_rotate: true,
+          direction: 'right',
+        }],
+        steer(direction) {
+          this.segments[0].direction = direction;
+          this.segments[0].icon = snake_icon(direction);
         },
         move() {
           this.time.elapsed = 0;
-          if (this.direction == 'left') {
-            this.moveLeft();
-          } else if (this.direction == 'right') {
-            this.moveRight();
-          } else if (this.direction == 'up') {
-            this.moveUp();
-          } else if (this.direction === 'down') {
-            this.moveDown();
-          }
 
+          let last = this.segments[this.segments.length - 1];
+          Alpine.store('grid')[last.y][last.x] = ' ';
+          for (let i = 0; i < this.segments.length; i++) {
+            let segment = this.segments[i];
+            if (segment.direction === 'left') {
+              if (segment.x === 0) {
+                segment.x = 9;
+              } else {
+                segment.x -= 1;
+              }
+            } else if (segment.direction === 'right') {
+              if (segment.x === 9) {
+                segment.x = 0;
+              } else {
+                segment.x += 1;
+              }
+            } else if (segment.direction === 'up') {
+              if (segment.y === 0) {
+                segment.y = 9;
+              } else {
+                segment.y -= 1;
+              }
+            } else if (segment.direction === 'down') {
+              if (segment.y === 9) {
+                segment.y = 0;
+              } else {
+                segment.y += 1;
+              }
+            }
+            if (i > 0) {
+              segment.direction = this.segments[i-1].direction;
+              segment.css_rotate = segment.direction == 'up' || segment.direction == 'down';
+            }
+            Alpine.store('grid')[segment.y][segment.x] = segment //i > 0 ? '=' : snake_icon(segment.direction);
+          }
+/*
           let food = Alpine.store('food');
           if (this.x == food.x && this.y == food.y) {
             this.score += 1;
@@ -110,37 +159,7 @@
 
             food.randomize();
           }
-        },
-        moveLeft() {
-          if (this.x === 0) {
-            this.x = 9;
-          } else {
-            this.x -= 1;
-          }
-        },
-
-        moveRight() {
-          if (this.x === 9) {
-            this.x = 0;
-          } else {
-            this.x += 1;
-          }
-        },
-
-        moveUp() {
-          if (this.y === 0) {
-            this.y = 9;
-          } else {
-            this.y -= 1;
-          }
-        },
-
-        moveDown() {
-          if (this.y === 9) {
-            this.y = 0;
-          } else {
-            this.y += 1;
-          }
+          */
         },
 
         // times are in milliseconds
@@ -160,7 +179,6 @@
           }
         }
       });
-
       // initialize the game
       Alpine.store('food').randomize();
 
