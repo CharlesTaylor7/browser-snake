@@ -13,12 +13,11 @@
   <body 
     autofocus 
     tabindex="-1"
-    x-data="{ grid: [], speed: 1, direction: 'right' }"
-    x-on:keyup="console.log(event)"
-    x-on:keyup.h="$store.snake.moveLeft()"
-    x-on:keyup.l="$store.snake.moveRight()"
-    x-on:keyup.k="$store.snake.moveUp()"
-    x-on:keyup.j="$store.snake.moveDown()"
+    x-on:keyup="console.log($store.snake)"
+    x-on:keydown.h="$store.snake.direction = 'left'"
+    x-on:keydown.l="$store.snake.direction = 'right'"
+    x-on:keydown.k="$store.snake.direction = 'up'"
+    x-on:keydown.j="$store.snake.direction = 'down'"
   >
     <main class="flex flex-col items-center gap-4 mt-4"> 
       <div>
@@ -49,12 +48,32 @@
     </main>
   </body>
   <script>
+    // define object stores
     document.addEventListener('alpine:init', () => {
+      Alpine.store('food', {
+        x: 0,
+        y: 0,
+        randomize() {
+          this.x = Math.floor(Math.random() * 10);
+          this.y = Math.floor(Math.random() * 10);
+        }
+      });
       Alpine.store('snake', {
         x: 0,
         y: 0,
         speed: 0,
-
+        direction: 'right',
+        move() {
+          if (this.direction == 'left') {
+            this.moveLeft();
+          } else if (this.direction == 'right') {
+            this.moveRight();
+          } else if (this.direction == 'up') {
+            this.moveUp();
+          } else if (this.direction === 'down') {
+            this.moveDown();
+          }
+        },
         moveLeft() {
           if (this.x === 0) {
           this.x = 9;
@@ -87,6 +106,21 @@
           }
         },
       })
+
+      // initialize the game
+      Alpine.store('food').randomize();
+      let lastMoveTime = 0;
+      function render(time) {
+        let snake = Alpine.store("snake");
+        deltaTime = time - lastMoveTime;
+        if (deltaTime > (1000 - snake.speed * 10)) {
+          snake.moveRight();
+          lastMoveTime = time;
+        }
+        requestAnimationFrame(render);
+      }
+
+      requestAnimationFrame(render);
     })
   </script>
 </html>
