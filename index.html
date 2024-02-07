@@ -7,7 +7,7 @@
     <script src="//unpkg.com/alpinejs" defer></script>
 
     <!-- Docs: https://tailwindcss.com/ -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="//cdn.tailwindcss.com"></script>
   </head>
 
   <body 
@@ -33,14 +33,8 @@
                 <td class="border border-neutral">
                   <span class="flex h-7 w-7 items-center justify-center">
                     <pre
-                      class="text-lg rotate-90"
-                      x-show="$store.grid[row - 1][col - 1].css_rotate"
-                      x-text="$store.grid[row - 1][col - 1].icon"
-                    >
-                    </pre>
-                    <pre
                       class="text-lg"
-                      x-show="! $store.grid[row - 1][col - 1].css_rotate"
+                      x-bind:class="$store.grid[row - 1][col - 1].css_rotate ? 'rotate-90' : ''"
                       x-text="$store.grid[row - 1][col - 1].icon"
                     >
                     </pre>
@@ -75,6 +69,9 @@
       });
       Alpine.store('grid', Array.from({length: 10}, () => Array.from({ length: 10 }, () => ' ')));
       Alpine.store('food', {
+        init() {
+          this.randomize();
+        },
         x: 0,
         y: 0,
         icon: '$',
@@ -84,10 +81,9 @@
             let y = Math.floor(Math.random() * 10);
             // ensure the food doesn't respawn in the same location 
             if (x != this.x || y != this.y) {
-              let grid = Alpine.store('grid');
-              grid[this.y][this.x] = Alpine.store('empty');
               this.x = x;
               this.y = y;
+              let grid = Alpine.store('grid');
               grid[y][x] = this;
               break;
             }
@@ -95,20 +91,25 @@
         }
       });
       Alpine.store('snake', {
+        init() {
+          this.segments.push({ 
+            x: 0,
+            y: 0,
+            icon: snake_icon('right'),
+            direction: 'right',
+          });
+
+          let snake = this;
+          function render(time) {
+            snake.animate(time)
+            requestAnimationFrame(render);
+          }
+         
+          requestAnimationFrame(render);
+        },
         speed: 0,
         score: 0,
-        segments: [{ 
-          x: 1,
-          y: 0,
-          icon: snake_icon('down'),
-          direction: 'down',
-        },{ 
-          x: 0,
-          y: 0,
-          icon: '=',
-          css_rotate: true,
-          direction: 'right',
-        }],
+        segments: Array.from({ length: 100 }),
         steer(direction) {
           this.segments[0].direction = direction;
           this.segments[0].icon = snake_icon(direction);
@@ -149,17 +150,21 @@
               segment.direction = this.segments[i-1].direction;
               segment.css_rotate = segment.direction == 'up' || segment.direction == 'down';
             }
-            Alpine.store('grid')[segment.y][segment.x] = segment //i > 0 ? '=' : snake_icon(segment.direction);
+            Alpine.store('grid')[segment.y][segment.x] = segment;
+            //i > 0 ? '=' : snake_icon(segment.direction);
           }
-/*
           let food = Alpine.store('food');
-          if (this.x == food.x && this.y == food.y) {
+          let head = this.segments[0];
+          if (head.x == food.x && head.y == food.y) {
             this.score += 1;
             this.speed += 1;
+            let last = this.segments[this.segments.length - 1];
+            let copy = structuredClone({...last});
+            copy.direction = '';
+            this.segments.push(copy);
 
             food.randomize();
           }
-          */
         },
 
         // times are in milliseconds
@@ -174,22 +179,12 @@
           this.time.previous = time;
 
           // the snake moves every second minus 10ms for each speed level
-          if (this.time.elapsed > (1000 - snake.speed * 10)) {
+          if (this.time.elapsed > (1000 - this.speed * 10)) {
             this.move();
+            console.log(this.segments);
           }
         }
       });
-      // initialize the game
-      Alpine.store('food').randomize();
-
-      let snake = Alpine.store("snake");
-
-      function render(time) {
-        snake.animate(time)
-        requestAnimationFrame(render);
-      }
-     
-      requestAnimationFrame(render);
     })
   </script>
 </html>
