@@ -4,7 +4,7 @@
     <title>Snake</title>
 
     <!-- Docs: https://alpinejs.dev/start-here -->
-    <script src="https://unpkg.com/alpinejs" defer></script>
+    <script src="//unpkg.com/alpinejs" defer></script>
 
     <!-- Docs: https://tailwindcss.com/ -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,13 +13,18 @@
   <body 
     autofocus 
     tabindex="-1"
-    x-on:keyup="console.log($store.snake)"
+    x-data
+    x-on:keydown.space="$store.snake.move()"
     x-on:keydown.h="$store.snake.direction = 'left'"
     x-on:keydown.l="$store.snake.direction = 'right'"
     x-on:keydown.k="$store.snake.direction = 'up'"
     x-on:keydown.j="$store.snake.direction = 'down'"
   >
     <main class="flex flex-col items-center gap-4 mt-4"> 
+      <div>
+        Score:
+        <span x-text="$store.snake.score"></span>
+      </div>
       <table 
         class="border-spacing-0"
       >
@@ -30,9 +35,13 @@
                 <td class="p-4 border border-neutral">
                   <span 
                     x-text="
-                      $store.snake.x === col - 1 && $store.snake.y === row - 1
-                      ? '**'
-                      : col + row
+                      if ($store.snake.x === col - 1 && $store.snake.y === row - 1) {
+                       return '**'
+                      } else if ($store.food.x === col - 1 && $store.food.y === row - 1) {
+                        return row + col;
+                      } else {
+                        return '__'
+                      }
                     "
                   >
                   </span>
@@ -51,15 +60,25 @@
         x: 0,
         y: 0,
         randomize() {
-          this.x = Math.floor(Math.random() * 10);
-          this.y = Math.floor(Math.random() * 10);
-        },
+          while (true) {
+            let x = Math.floor(Math.random() * 10);
+            let y = Math.floor(Math.random() * 10);
+            // ensure the food doesn't respawn in the same location 
+            if (x != this.x || y != this.y) {
+              this.x = x;
+              this.y = y;
+              break;
+            }
+          }
+        }
       });
       Alpine.store('snake', {
         x: 0,
         y: 0,
         speed: 0,
+        score: 0,
         direction: 'right',
+        lastMovedTime: 0,
         move() {
           if (this.direction == 'left') {
             this.moveLeft();
@@ -69,6 +88,14 @@
             this.moveUp();
           } else if (this.direction === 'down') {
             this.moveDown();
+          }
+
+          let food = Alpine.store('food');
+          if (this.x == food.x && this.y == food.y) {
+            this.score += 1;
+            this.speed += 1;
+
+            food.randomize();
           }
         },
         moveLeft() {
@@ -102,21 +129,26 @@
             this.y += 1;
           }
         },
+
+        animate(time) {
+          // the snake moves every second minus 10ms for each speed level
+          if (time - snake.lastMovedTime > (1000 - snake.speed * 10)) {
+            snake.move();
+            snake.lastMovedTime = time;
+          }
+        }
       });
 
       // initialize the game
       Alpine.store('food').randomize();
-      let lastMoveTime = 0;
+
+      let snake = Alpine.store("snake");
+
       function render(time) {
-        let snake = Alpine.store("snake");
-        deltaTime = time - lastMoveTime;
-        if (deltaTime > (1000 - snake.speed * 10)) {
-          snake.moveRight();
-          lastMoveTime = time;
-        }
+        snake.animate(time)
         requestAnimationFrame(render);
       }
-
+     
       requestAnimationFrame(render);
     })
   </script>
