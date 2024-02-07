@@ -13,7 +13,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
-  <body id="app">
+  <body 
+    id="app" 
+    autofocus
+    tabindex="-1"
+    @keyup="console.log('key')" 
+  >
     <main class="flex flex-col items-center mt-10"> 
       <h2>{{ message }}</h2>
       <button class="btn btn-primary" @click="count++">Clicked: {{ count }}</button>
@@ -29,7 +34,7 @@
                 v-for="item in row"
                 class="p-4 border-neutral border-l first:border-l-0"
               >
-                {{ item.num }}
+                {{ item.visited }}
               </td>
             </tr>
           </tbody>
@@ -50,16 +55,58 @@
         for (let j = 0; j < 10; j++) {
           let row = [];
           for (let i = 0; i < 10; i++) {
-            row.push({ num: i + j });
+            row.push({ visited: 0, num: i + j });
           }
           initialGrid.push(row);
         }
 
         let grid = Vue.reactive(initialGrid);
+        let snake = Vue.reactive({
+          position: 0,
+        });
+
+        Vue.watch(snake, function (s) { console.log(s) });
+
         return {
           message,
           count,
           grid,
+          snake,
+          moveLeft() {
+            if (snake.position % 10 === 0) {
+              snake.position += 9;
+            }
+            else {
+              snake.position -= 1;
+            }
+          },
+
+          moveRight() {
+            if (snake.position % 10 === 9) {
+              snake.position -= 9;
+            }
+            else {
+              snake.position += 1;
+            }
+          },
+
+          moveDown() {
+            if (snake.position >= 90) {
+              snake.position -= 90;
+            }
+            else {
+              snake.position += 10;
+            }
+          },
+
+          moveUp() {
+            if (snake.position < 10) {
+              snake.position += 90;
+            }
+            else {
+              snake.position -= 10;
+            }
+          },
         };
       }
     };
