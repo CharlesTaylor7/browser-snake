@@ -36,7 +36,7 @@
                   <span 
                     x-text="
                       if ($store.snake.x === col - 1 && $store.snake.y === row - 1) {
-                       return '**'
+                       return $store.snake.icon()
                       } else if ($store.food.x === col - 1 && $store.food.y === row - 1) {
                         return row + col;
                       } else {
@@ -79,6 +79,19 @@
         score: 0,
         direction: 'right',
         lastMovedTime: 0,
+        icon() {
+          if (this.direction === 'up') {
+            return '▲';
+          } else if (this.direction === 'down') {
+            return '▼';
+          } else if (this.direction === 'right') {
+            return '▶';
+          } else if (this.direction === 'left') {
+            return '◀';
+          } else {
+            return 'idk';
+          }
+        },
         move() {
           if (this.direction == 'left') {
             this.moveLeft();
