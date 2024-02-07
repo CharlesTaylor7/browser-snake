@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+  <head>
+    <title>Hello Vue!</title>
+
+    <!-- Docs: https://vuejs.org/guide/introduction.html -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <!-- Docs: https://daisyui.com/components/ -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.1/dist/full.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- Docs: https://tailwindcss.com/ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body id="app">
+    <main class="flex flex-col items-center mt-10"> 
+      <h2>{{ message }}</h2>
+      <button class="btn btn-primary" @click="count++">Clicked: {{ count }}</button>
+
+      <div class="border border-neutral rounded-box">
+        <table class="border-spacing-0">
+          <tbody>
+            <tr 
+              v-for="row in grid"
+              class="border-neutral border-t first:border-t-0"
+            >
+              <td 
+                v-for="item in row"
+                class="p-4 border-neutral border-l first:border-l-0"
+              >
+                {{ item.num }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </body>
+
+  <script>
+    let App = {
+      setup() {
+        let messages = ["howdy", "hello", "how are you?"];
+        let count = Vue.ref(0);
+        let message = Vue.computed(() => {
+          return messages[count.value % messages.length]
+        });
+        let initialGrid = [];
+        for (let j = 0; j < 10; j++) {
+          let row = [];
+          for (let i = 0; i < 10; i++) {
+            row.push({ num: i + j });
+          }
+          initialGrid.push(row);
+        }
+
+        let grid = Vue.reactive(initialGrid);
+        return {
+          message,
+          count,
+          grid,
+        };
+      }
+    };
+    Vue.createApp(App).mount('#app');
+  </script>
+</html>)
