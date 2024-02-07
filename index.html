@@ -78,7 +78,6 @@
         speed: 0,
         score: 0,
         direction: 'right',
-        lastMovedTime: 0,
         icon() {
           if (this.direction === 'up') {
             return '▲';
@@ -93,6 +92,7 @@
           }
         },
         move() {
+          this.time.elapsed = 0;
           if (this.direction == 'left') {
             this.moveLeft();
           } else if (this.direction == 'right') {
@@ -143,11 +143,20 @@
           }
         },
 
+        // times are in milliseconds
+        time: {
+          // total time since last movement
+          elapsed: 0,
+          // timestamp of previous animation frame
+          previous: 0,
+        },
         animate(time) {
+          this.time.elapsed += time - this.time.previous;
+          this.time.previous = time;
+
           // the snake moves every second minus 10ms for each speed level
-          if (time - snake.lastMovedTime > (1000 - snake.speed * 10)) {
-            snake.move();
-            snake.lastMovedTime = time;
+          if (this.time.elapsed > (1000 - snake.speed * 10)) {
+            this.move();
           }
         }
       });
