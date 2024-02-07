@@ -1,115 +1,91 @@
 <!DOCTYPE html>
-<html data-theme="dark">
+<html>
   <head>
-    <title>Hello Vue!</title>
+    <title>Snake</title>
 
-    <!-- Docs: https://vuejs.org/guide/introduction.html -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <!-- Docs: https://daisyui.com/components/ -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.6.1/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <!-- Docs: https://alpinejs.dev/start-here -->
+    <script src="https://unpkg.com/alpinejs" defer></script>
 
     <!-- Docs: https://tailwindcss.com/ -->
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
 
   <body 
-    id="app" 
-    autofocus
+    autofocus 
     tabindex="-1"
-    @keyup="console.log('key')" 
+    x-data="{ count: 0, grid: [], speed: 1, direction: 'right' }"
+    x-on:keyup="console.log(event)"
+    x-on:keyup.h="$store.snake.moveLeft()"
+    x-on:keyup.l="$store.snake.moveRight()"
+    x-on:keyup.k="$store.snake.moveUp()"
+    x-on:keyup.j="$store.snake.moveDown()"
   >
-    <main class="flex flex-col items-center mt-10"> 
-      <h2>{{ message }}</h2>
-      <button class="btn btn-primary" @click="count++">Clicked: {{ count }}</button>
-
-      <div class="border border-neutral rounded-box">
-        <table class="border-spacing-0">
-          <tbody>
-            <tr 
-              v-for="row in grid"
-              class="border-neutral border-t first:border-t-0"
-            >
-              <td 
-                v-for="item in row"
-                class="p-4 border-neutral border-l first:border-l-0"
-              >
-                {{ item.visited }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <main class="flex flex-col items-center gap-4 mt-4"> 
+      <div>
+        Position: (<span x-text="$store.snake.x"></span>, <span x-text="$store.snake.y"></span>)
       </div>
+      <table 
+        class="border-spacing-0"
+      >
+        <tbody>
+          <template x-for="row in 10">
+            <tr class="border border-neutral" >
+              <template x-for="col in 10">
+                <td class="p-4 border border-neutral">
+                  <span 
+                    x-text="
+                      $store.snake.x === col - 1 && $store.snake.y === row - 1
+                      ? '**'
+                      : col + row
+                    "
+                  >
+                  </span>
+                </td>
+              </template>
+            </tr>
+          </template>
+        </tbody>
+      </table>
     </main>
   </body>
-
   <script>
-    let App = {
-      setup() {
-        let messages = ["howdy", "hello", "how are you?"];
-        let count = Vue.ref(0);
-        let message = Vue.computed(() => {
-          return messages[count.value % messages.length]
-        });
-        let initialGrid = [];
-        for (let j = 0; j < 10; j++) {
-          let row = [];
-          for (let i = 0; i < 10; i++) {
-            row.push({ visited: 0, num: i + j });
-          }
-          initialGrid.push(row);
-        }
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('snake', {
+            x: 0,
+            y: 0,
 
-        let grid = Vue.reactive(initialGrid);
-        let snake = Vue.reactive({
-          position: 0,
-        });
+            moveLeft() {
+              if (this.x === 0) {
+                this.x = 9;
+              } else {
+                this.x -= 1;
+              }
+            },
 
-        Vue.watch(snake, function (s) { console.log(s) });
+            moveRight() {
+              if (this.x === 9) {
+                this.x = 0;
+              } else {
+                this.x += 1;
+              }
+            },
 
-        return {
-          message,
-          count,
-          grid,
-          snake,
-          moveLeft() {
-            if (snake.position % 10 === 0) {
-              snake.position += 9;
-            }
-            else {
-              snake.position -= 1;
-            }
-          },
+            moveUp() {
+              if (this.y === 0) {
+                this.y = 9;
+              } else {
+                this.y -= 1;
+              }
+            },
 
-          moveRight() {
-            if (snake.position % 10 === 9) {
-              snake.position -= 9;
-            }
-            else {
-              snake.position += 1;
-            }
-          },
-
-          moveDown() {
-            if (snake.position >= 90) {
-              snake.position -= 90;
-            }
-            else {
-              snake.position += 10;
-            }
-          },
-
-          moveUp() {
-            if (snake.position < 10) {
-              snake.position += 90;
-            }
-            else {
-              snake.position -= 10;
-            }
-          },
-        };
-      }
-    };
-    Vue.createApp(App).mount('#app');
+            moveDown() {
+              if (this.y === 9) {
+                this.y = 0;
+              } else {
+                this.y += 1;
+              }
+            },
+        })
+    })
   </script>
 </html>

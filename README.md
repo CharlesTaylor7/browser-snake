@@ -1,11 +1,11 @@
 ## Snake
 Snake in the browser, implemented in a single file.
 
-Made with Vue, Tailwind, & DaisyUI.
+Made with Apline & Tailwind
 
-For local development run:
+To run locally:
 ```bash
-git clone 
-cd vue-snake
+git clone <repo link goes here>
+cd browser-snake
 npx serve .
 ```
