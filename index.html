@@ -14,6 +14,7 @@
     autofocus 
     tabindex="-1"
     x-data
+    x-on:keydown.enter="$store.snake.togglePause()"
     x-on:keydown.space="$store.snake.move()"
     x-on:keydown.h="$store.snake.steer('left')"
     x-on:keydown.l="$store.snake.steer('right')"
@@ -147,7 +148,10 @@
             if (i > 0) {
               segment.direction = this.segments[i-1].direction;
               segment.css_rotate = segment.direction == 'up' || segment.direction == 'down';
+              segment.icon = snake_icon(segment.direction);
             }
+            const { x, y, direction, css_rotate, icon } = segment;
+            console.log({ x, y, direction, css_rotate, icon });
             Alpine.store('grid')[segment.y][segment.x] = segment;
             //i > 0 ? '=' : snake_icon(segment.direction);
           }
@@ -159,29 +163,35 @@
             let last = this.segments[this.segments.length - 1];
             console.log("last", last);
             let copy = Alpine.reactive({...last});
-            console.log("copy", copy);
             copy.direction = '';
+            copy.icon = '%';
+            console.log("copy", copy);
             this.segments.push(copy);
 
             food.randomize();
           }
         },
+        togglePause() {
+          this.time.paused = !this.time.paused;
+        },
 
         // times are in milliseconds
         time: {
+          paused: false,
           // total time since last movement
           elapsed: 0,
           // timestamp of previous animation frame
           previous: 0,
         },
         animate(time) {
-          this.time.elapsed += time - this.time.previous;
+          if (!this.time.paused) {
+            this.time.elapsed += time - this.time.previous;
+          }
           this.time.previous = time;
 
           // the snake moves every second minus 10ms for each speed level
           if (this.time.elapsed > (1000 - this.speed * 10)) {
             this.move();
-            console.log(this.segments);
           }
         }
       });
