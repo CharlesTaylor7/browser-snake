@@ -46,37 +46,43 @@
       def move()
         log 'move'
         set $time.elapsed to 0
-        get <[data-cell='snake-head']/> in me then set head to the result
+        get <[data-cell=snake][data-snake-index='0']/> in me then set head to the result
         set x to head's @data-x as Number
         set y to head's @data-y as Number
-        if @data-direction == 'right' 
+        log 'before move coordinates', x, y
+        if head@data-direction == 'right' 
           increment x
           if x >= 10 
             set x to 0
           end
-        else if @data-direction == 'left' 
+        else if head@data-direction == 'left' 
           decrement x
           if x < 0
             set x to 9
           end
-        else if @data-direction == 'down' 
+        else if head@data-direction == 'down' 
           increment y
           if y >= 10
             set y to 0
           end
-        else if @data-direction == 'up' 
+        else if head@data-direction == 'up' 
           decrement y 
           if y < 0
             set y to 9
           end
         end
 
+        log 'after move coordinates', x, y
         set head@data-cell to 'empty'
-        log 'x', x, 'y', y
         set cell_id to `cell-${x}-${y}`
         get the #{cell_id} in me
-        set its@data-cell to 'snake-head'
-        set its@data-direction to @data-direction
+        set its@data-cell to 'snake'
+        set its@data-snake-index to '0'
+      end
+
+      def steer(direction)
+        log 'steer', direction
+        set the @data-direction of the <[data-snake-index='0'] /> to direction
       end
 
       def animate(time)
@@ -103,7 +109,6 @@
   <body 
     autofocus 
     tabindex="-1"
-    data-direction="right"
     data-speed="0"
     data-paused="true"
     _="
@@ -113,26 +118,20 @@
         call requestAnimationFrame(animate)
       end
 
-      on mutation[target==me] of @data-direction
-        get the <[data-cell='snake-head']/> in me
-        put @data-direction into its@data-direction
-        log 'change dir'
-      end
-
       on keydown[key=='h'] 
-        set @data-direction to 'left'
+        steer('left')
       end
 
       on keydown[key=='l'] 
-        set @data-direction to 'right'
+        steer('right')
       end
 
       on keydown[key=='j'] 
-        set @data-direction to 'down'
+        steer('down')
       end
 
       on keydown[key=='k'] 
-        set @data-direction to 'up'
+        steer('up')
       end
 
       on keydown[key==' ']
@@ -175,30 +174,41 @@
                           put `cell-${@data-x}-${@data-y}` into my@id
 
                           if @data-x == 0 and @data-y == 0 
-                            put 'snake-head' into @data-cell
+                            put 'snake' into @data-cell
+                            put '0' into @data-snake-index
                           end
+
+                          -- temporary
+                          if @data-x == 0 and @data-y == 1 
+                            put 'snake' into @data-cell
+                            put '1' into @data-snake-index
+                            put 'up' into @data-direction
+                          end
+
                           if @data-x == 9 and @data-y == 9 
                             send snake:init to the closest <body />
                           end
                         end
 
+                        /*
                         on mutation of attributes
                           log event
                           if @data-cell == 'empty' 
                             put ' ' into me
                           else if @data-cell == 'food'
                             put '$' into me
-                          else if @data-cell == 'snake-body'
+                          else if @data-cell == 'snake' and @data-snake-index == '0'
+                            put snakeIcon(@data-direction) into me
+                          else if @data-cell == 'snake'
                             put '=' into me
                             if @data-direction == 'up' or @data-direction == 'down'
                               add .rotate-90
                             else
                               remove .rotate-90
                             end
-                          else if @data-cell == 'snake-head'
-                            put snakeIcon(@data-direction) into me
                           end
                         end
+                        */
                       "
                     >
                     </pre>
