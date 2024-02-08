@@ -3,40 +3,159 @@
   <head>
     <title>Snake</title>
 
-    <!-- Docs: https://alpinejs.dev/start-here -->
-    <script src="//unpkg.com/alpinejs" defer></script>
+    <!-- Docs: https://hyperscript.org/docs -->
+    <script src="//unpkg.com/hyperscript.org@0.9.12"></script>
+    <script src="//cdn.tailwindcss.com"></script>
+
+    <script type="text/hyperscript">
+      behavior Repeat(amount)
+        init 
+          repeat amount times index i
+            call my.content.cloneNode(true)
+            set fragment to the result 
+            put i into fragment.firstElementChild@data-index
+            put fragment before me
+          end
+        end
+      end
+
+      def snakeIcon(direction)
+        if direction == 'up' 
+          return '▲'
+        else if direction == 'down' 
+          return '▼'
+        else if direction === 'right' 
+          return '▶'
+        else if direction === 'left'
+          return '◀'
+        else 
+          return 'idk'
+        end
+      end
+
+      def randomizeFood()
+        get the <[data-cell='empty']/> in me
+        if the result's length > 0
+          set el to random in result
+          put 'food' into el's @data-cell 
+        else
+          alert('Grid is maxed out, cannot spawn new food, good job!')
+        end
+      end
+
+      def move()
+        log 'TODO: move'
+        set @data-time-elapsed to 0
+      end
+
+      def animate(time)
+        if not @data-paused
+          get @data-time-elapsed as Number
+          set @data-time-elapsed to it + (time - @data-time-previous)
+        end
+
+        set @data-time-previous to time
+
+          // the snake moves every second minus 10ms for each speed level
+        if @data-time-elapsed > (1000 - (@data-speed * 10))
+          move()
+        end
+        call requestAnimationFrame(animate)
+      end
+     
+    </script>
 
     <!-- Docs: https://tailwindcss.com/ -->
-    <script src="//cdn.tailwindcss.com"></script>
   </head>
 
   <body 
     autofocus 
     tabindex="-1"
-    x-data
-    x-on:keydown.enter="$store.snake.togglePause()"
-    x-on:keydown.space="$store.snake.move()"
-    x-on:keydown.h="$store.snake.steer('left')"
-    x-on:keydown.l="$store.snake.steer('right')"
-    x-on:keydown.k="$store.snake.steer('up')"
-    x-on:keydown.j="$store.snake.steer('down')"
+    data-direction="right"
+    data-speed="0"
+    data-time-elapsed="0"
+    data-time-previous="0"
+    _="
+      on snake:init
+        randomizeFood()
+        call requestAnimationFrame(animate)
+      end
+
+      on keydown[key=='h'] 
+        set @data-dir to 'left'
+      end
+
+      on keydown[key=='l'] 
+        set @data-dir to 'right'
+      end
+
+      on keydown[key=='j'] 
+        set @data-dir to 'down'
+      end
+
+      on keydown[key=='k'] 
+        set @data-dir to 'up'
+      end
+
+      on keydown[key==' ']
+        log 'TODO: Move'
+      end
+
+      on keydown[key=='Enter']
+        toggle @data-paused
+        if @data-paused
+          log 'paused'
+        else 
+          log 'unpaused'
+        end
+      end
+    "
   >
     <main class="flex flex-col items-center gap-4 mt-4"> 
       <div>
         Score:
-        <span x-text="$store.snake.score"></span>
+        <span id="score"></span>
       </div>
       <table class="border-spacing-0 border-collapse">
         <tbody>
-          <template x-for="row in 10">
+          <template _="install Repeat(amount: 10)">
             <tr class="border border-neutral">
-              <template x-for="col in 10">
+              <template _="install Repeat(amount: 10)">
                 <td class="border border-neutral">
                   <span class="flex h-7 w-7 items-center justify-center">
+                    <!--style="content: attr(data-cell)"-->
                     <pre
+                      data-cell='empty'
                       class="text-lg"
-                      x-bind:class="$store.grid[row - 1][col - 1].css_rotate ? 'rotate-90' : ''"
-                      x-text="$store.grid[row - 1][col - 1].icon"
+                      _="
+                        init
+                          get the closest <td/> 
+                          set column to its@data-index
+                          get the closest <tr/>
+                          set row to its@data-index
+                          put `cell-${column}-${row}` into my@id
+
+                          if column == 0 and row == 0 
+                            put 'snake-head' into @data-cell
+                          end
+                          if column == 9 and row == 9 
+                            send snake:init to the closest <body />
+                          end
+                        end
+
+                        on mutation of @data-cell
+                          if @data-cell == 'empty' 
+                            put ' ' into me
+                          else if @data-cell == 'food'
+                            put '$' into me
+                          else if @data-cell == 'snake-body'
+                            put '=' into me
+                          else if @data-cell == 'snake-head'
+                            get @data-direction of the closest <body />
+                            put snakeIcon(the result) into me
+                          end
+                        end
+                      "
                     >
                     </pre>
                   </span>
@@ -50,45 +169,8 @@
   </body>
   <script>
     // utilities
-    function snake_icon(direction) {
-      if (direction === 'up') {
-        return '▲';
-      } else if (direction === 'down') {
-        return '▼';
-      } else if (direction === 'right') {
-        return '▶';
-      } else if (direction === 'left') {
-        return '◀';
-      } else {
-        return 'idk';
-      }
-    }
-    // define object stores
+        // define object stores
     document.addEventListener('alpine:init', () => {
-      const EMPTY = Alpine.reactive({ icon: ' ' });
-      Alpine.store('grid', Array.from({length: 10}, () => Array.from({ length: 10 }, () => EMPTY)));
-      Alpine.store('food', {
-        init() {
-          this.randomize();
-        },
-        x: 0,
-        y: 0,
-        icon: '$',
-        randomize() {
-          while (true) {
-            let x = Math.floor(Math.random() * 10);
-            let y = Math.floor(Math.random() * 10);
-            // ensure the food doesn't respawn in the same location 
-            if (x != this.x || y != this.y) {
-              this.x = x;
-              this.y = y;
-              let grid = Alpine.store('grid');
-              grid[y][x] = this;
-              break;
-            }
-          }
-        }
-      });
       Alpine.store('snake', {
         init() {
           this.segments[0] = ({ 
@@ -170,9 +252,6 @@
 
             food.randomize();
           }
-        },
-        togglePause() {
-          this.time.paused = !this.time.paused;
         },
 
         // times are in milliseconds
