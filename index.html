@@ -46,6 +46,46 @@
       def move()
         log 'TODO: move'
         set @data-time-elapsed to 0
+
+        get the <[data-cell='snake-head']/> in me
+        set head to the result
+        set x to head@data-x
+        set y to head@data-y
+        if @data-direction == 'right' 
+          set x to (x + 1) mod 10
+        end
+
+        set head@data-cell to 'empty'
+        set cell_id to `cell-${x}-${y}`
+        get the #{cell_id} in me
+        set its@data-cell to 'snake-head'
+/*
+        get the 
+          if left
+          .x === 0 
+            segment.x = 9;
+          } else {
+            segment.x -= 1;
+          }
+        } else if (segment.direction === 'right') {
+          if (segment.x === 9) {
+            segment.x = 0;
+          } else {
+            segment.x += 1;
+          }
+        } else if (segment.direction === 'up') {
+          if (segment.y === 0) {
+            segment.y = 9;
+          } else {
+            segment.y -= 1;
+          }
+        } else if (segment.direction === 'down') {
+          if (segment.y === 9) {
+            segment.y = 0;
+          } else {
+            segment.y += 1;
+            */
+ 
       end
 
       def animate(time)
@@ -130,15 +170,15 @@
                       _="
                         init
                           get the closest <td/> 
-                          set column to its@data-index
+                          set @data-x to its@data-index
                           get the closest <tr/>
-                          set row to its@data-index
-                          put `cell-${column}-${row}` into my@id
+                          set @data-y to its@data-index
+                          put `cell-${@data-x}-${@data-y}` into my@id
 
-                          if column == 0 and row == 0 
+                          if @data-x == 0 and @data-y == 0 
                             put 'snake-head' into @data-cell
                           end
-                          if column == 9 and row == 9 
+                          if @data-x == 9 and @data-y == 9 
                             send snake:init to the closest <body />
                           end
                         end
@@ -167,113 +207,4 @@
       </table>
     </main>
   </body>
-  <script>
-    // utilities
-        // define object stores
-    document.addEventListener('alpine:init', () => {
-      Alpine.store('snake', {
-        init() {
-          this.segments[0] = ({ 
-            x: 0,
-            y: 0,
-            icon: snake_icon('right'),
-            direction: 'right',
-          });
-
-          let snake = this;
-          function render(time) {
-            snake.animate(time)
-            requestAnimationFrame(render);
-          }
-         
-          requestAnimationFrame(render);
-        },
-        speed: 0,
-        score: 0,
-        segments: Array.from({ length: 1 }), // TODO: circular buffer
-        steer(direction) {
-          this.segments[0].direction = direction;
-          this.segments[0].icon = snake_icon(direction);
-        },
-        move() {
-          this.time.elapsed = 0;
-
-          let last = this.segments[this.segments.length - 1];
-          Alpine.store('grid')[last.y][last.x] = EMPTY;
-          for (let i = 0; i < this.segments.length; i++) {
-            let segment = this.segments[i];
-            if (segment.direction === 'left') {
-              if (segment.x === 0) {
-                segment.x = 9;
-              } else {
-                segment.x -= 1;
-              }
-            } else if (segment.direction === 'right') {
-              if (segment.x === 9) {
-                segment.x = 0;
-              } else {
-                segment.x += 1;
-              }
-            } else if (segment.direction === 'up') {
-              if (segment.y === 0) {
-                segment.y = 9;
-              } else {
-                segment.y -= 1;
-              }
-            } else if (segment.direction === 'down') {
-              if (segment.y === 9) {
-                segment.y = 0;
-              } else {
-                segment.y += 1;
-              }
-            }
-            if (i > 0) {
-              segment.direction = this.segments[i-1].direction;
-              segment.css_rotate = segment.direction == 'up' || segment.direction == 'down';
-              segment.icon = snake_icon(segment.direction);
-            }
-            const { x, y, direction, css_rotate, icon } = segment;
-            console.log({ x, y, direction, css_rotate, icon });
-            Alpine.store('grid')[segment.y][segment.x] = segment;
-            //i > 0 ? '=' : snake_icon(segment.direction);
-          }
-          let food = Alpine.store('food');
-          let head = this.segments[0];
-          if (head.x == food.x && head.y == food.y) {
-            this.score += 1;
-            this.speed += 1;
-            let last = this.segments[this.segments.length - 1];
-            console.log("last", last);
-            let copy = Alpine.reactive({...last});
-            copy.direction = '';
-            copy.icon = '%';
-            console.log("copy", copy);
-            this.segments.push(copy);
-
-            food.randomize();
-          }
-        },
-
-        // times are in milliseconds
-        time: {
-          paused: false,
-          // total time since last movement
-          elapsed: 0,
-          // timestamp of previous animation frame
-          previous: 0,
-        },
-        animate(time) {
-          if (!this.time.paused) {
-            this.time.elapsed += time - this.time.previous;
-          }
-          this.time.previous = time;
-
-          // the snake moves every second minus 10ms for each speed level
-          if (this.time.elapsed > (1000 - this.speed * 10)) {
-            this.move();
-          }
-        }
-      });
-    })
-  </script>
 </html>
