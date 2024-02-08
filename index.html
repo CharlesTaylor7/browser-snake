@@ -64,10 +64,8 @@
     }
     // define object stores
     document.addEventListener('alpine:init', () => {
-      Alpine.store('empty', {
-        icon: ' ',
-      });
-      Alpine.store('grid', Array.from({length: 10}, () => Array.from({ length: 10 }, () => ' ')));
+      const EMPTY = Alpine.reactive({ icon: ' ' });
+      Alpine.store('grid', Array.from({length: 10}, () => Array.from({ length: 10 }, () => EMPTY)));
       Alpine.store('food', {
         init() {
           this.randomize();
@@ -92,7 +90,7 @@
       });
       Alpine.store('snake', {
         init() {
-          this.segments.push({ 
+          this.segments[0] = ({ 
             x: 0,
             y: 0,
             icon: snake_icon('right'),
@@ -109,7 +107,7 @@
         },
         speed: 0,
         score: 0,
-        segments: Array.from({ length: 100 }),
+        segments: Array.from({ length: 1 }), // TODO: circular buffer
         steer(direction) {
           this.segments[0].direction = direction;
           this.segments[0].icon = snake_icon(direction);
@@ -118,7 +116,7 @@
           this.time.elapsed = 0;
 
           let last = this.segments[this.segments.length - 1];
-          Alpine.store('grid')[last.y][last.x] = ' ';
+          Alpine.store('grid')[last.y][last.x] = EMPTY;
           for (let i = 0; i < this.segments.length; i++) {
             let segment = this.segments[i];
             if (segment.direction === 'left') {
@@ -159,7 +157,9 @@
             this.score += 1;
             this.speed += 1;
             let last = this.segments[this.segments.length - 1];
-            let copy = structuredClone({...last});
+            console.log("last", last);
+            let copy = Alpine.reactive({...last});
+            console.log("copy", copy);
             copy.direction = '';
             this.segments.push(copy);
 
