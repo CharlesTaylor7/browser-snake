@@ -45,7 +45,7 @@
 
       def move()
         log 'move'
-        set @data-time-elapsed to 0
+        set $time.elapsed to 0
         get <[data-cell='snake-head']/> in me then set head to the result
         set x to head's @data-x as Number
         set y to head's @data-y as Number
@@ -81,14 +81,14 @@
 
       def animate(time)
         if not @data-paused
-          get @data-time-elapsed as Number
-          set @data-time-elapsed to it + (time - @data-time-previous)
+          get $time.elapsed as Number
+          set $time.elapsed to it + (time - $time.previous)
         end
 
-        set @data-time-previous to time
+        set $time.previous to time
 
         // the snake moves every second minus 10ms for each speed level
-        if @data-time-elapsed > (1000 - (@data-speed * 10))
+        if $time.elapsed > (1000 - (@data-speed * 10))
           move()
         end
 
@@ -105,11 +105,10 @@
     tabindex="-1"
     data-direction="right"
     data-speed="0"
-    data-time-elapsed="0"
-    data-time-previous="0"
     _="
       on snake:init
         randomizeFood()
+        set $time to { elapsed: 0, previous: 0 }
         call requestAnimationFrame(animate)
       end
 
@@ -182,7 +181,7 @@
                           end
                         end
 
-                        on mutation of @data-cell or @data-direction
+                        on mutation of attributes
                           log event
                           if @data-cell == 'empty' 
                             put ' ' into me
