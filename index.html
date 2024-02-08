@@ -190,25 +190,30 @@
                           end
                         end
 
-                        /*
                         on mutation of attributes
-                          log event
+                          if event.detail.mutationList[0].attributeName == 'class'
+                            exit
+                          end
+
                           if @data-cell == 'empty' 
                             put ' ' into me
                           else if @data-cell == 'food'
                             put '$' into me
-                          else if @data-cell == 'snake' and @data-snake-index == '0'
-                            put snakeIcon(@data-direction) into me
-                          else if @data-cell == 'snake'
-                            put '=' into me
-                            if @data-direction == 'up' or @data-direction == 'down'
-                              add .rotate-90
+                          else if @data-cell == 'snake' 
+                            if @data-snake-index == '0'
+                              put snakeIcon(@data-direction) into me
                             else
-                              remove .rotate-90
+                              log 'culprit'
+                              log event
+                              put '=' into me
+                              if @data-direction == 'up' or @data-direction == 'down'
+                                add .rotate-90
+                              else
+                                remove .rotate-90
+                              end
                             end
                           end
                         end
-                        */
                       "
                     >
                     </pre>
