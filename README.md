@@ -13,6 +13,4 @@ npx serve .
 
 
 ## TODO
-
-Mobile friendly screen size.
-Buttons
+- [ ] Circular button wheel

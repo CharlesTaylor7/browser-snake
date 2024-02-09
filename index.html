@@ -25,19 +25,16 @@
       end
       behavior SnakeButton(direction)
         on click
-          steer(direction)
+          // steer(direction)
         end
         on touchstart
           steer(direction)
-          log 'double time'
           add @data-button-hold to closest <body />
         end
         on touchcancel
-          log 'cancel'
           remove @data-button-hold from closest <body />
         end
         on touchend 
-          log 'end double time'
           remove @data-button-hold from closest <body />
         end
       end
