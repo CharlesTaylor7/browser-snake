@@ -25,16 +25,22 @@
       end
       behavior SnakeButton(direction)
         on click
-          // steer(direction)
+          -- log 'click'
         end
+
         on touchstart
+          log 'start'
           steer(direction)
-          add @data-button-hold to closest <body />
+          wait for touchcancel or touchend or 400ms
+          if the result is not a Event
+            log the result
+            log 'hold'
+            add @data-button-hold to closest <body />
+          end
         end
-        on touchcancel
-          remove @data-button-hold from closest <body />
-        end
-        on touchend 
+
+        on touchcancel or touchend
+          log 'end'
           remove @data-button-hold from closest <body />
         end
       end
