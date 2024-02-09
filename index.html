@@ -44,7 +44,6 @@
       end
 
       def move()
-        log 'move'
         set $time.elapsed to 0
         get <[data-cell=snake]/> in me 
         call result.sort(\a, b -> a's @data-snake-index as Number - b's @data-snake-index as Number)
@@ -100,7 +99,6 @@
       end
 
       def steer(direction)
-        log 'steer', direction
         set @data-direction to direction
         set the @data-direction of the <[data-snake-index='0'] /> to direction
       end
@@ -177,11 +175,6 @@
 
       on keydown[key=='Enter']
         toggle @data-paused
-        if @data-paused
-          log 'paused'
-        else 
-          log 'unpaused'
-        end
       end
     "
   >
