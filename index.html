@@ -46,10 +46,25 @@
       def move()
         log 'move'
         set $time.elapsed to 0
-        get <[data-cell=snake][data-snake-index='0']/> in me then set head to the result
+        get <[data-cell=snake]/> in me 
+        call result.sort(\a, b -> a's @data-snake-index as Number - b's @data-snake-index as Number)
+        set snake to the result
+
+        // update body
+        for segment in snake
+          increment its@data-snake-index
+        end
+        if @data-grow-snake
+          remove @data-grow-snake
+        else
+          add @data-cell='empty' to the last snake
+          remove @data-snake-index from the last snake
+        end
+
+        // move head
+        set head to the first snake
         set x to head's @data-x as Number
         set y to head's @data-y as Number
-        log 'before move coordinates', x, y
         if head@data-direction == 'right' 
           increment x
           if x >= 10 
@@ -72,16 +87,21 @@
           end
         end
 
-        log 'after move coordinates', x, y
-        set head@data-cell to 'empty'
         set cell_id to `cell-${x}-${y}`
         get the #{cell_id} in me
+
+        if the result's @data-cell == 'snake'
+          send snake:collision to the closest <body />
+        end
+
         set its@data-cell to 'snake'
         set its@data-snake-index to '0'
+        set its@data-direction to @data-direction
       end
 
       def steer(direction)
         log 'steer', direction
+        set @data-direction to direction
         set the @data-direction of the <[data-snake-index='0'] /> to direction
       end
 
@@ -110,12 +130,29 @@
     autofocus 
     tabindex="-1"
     data-speed="0"
-    data-paused="true"
+    data-score="0"
+    data-direction='right'
     _="
       on snake:init
         randomizeFood()
         set $time to { elapsed: 0, previous: 0 }
         call requestAnimationFrame(animate)
+      end
+
+      on snake:consume
+        increment @data-speed
+        increment @data-score
+        add @data-grow-snake
+        randomizeFood()
+      end
+
+      on snake:collision
+        add @data-paused
+        alert('game over')
+      end
+
+      on mutation[target==me] of @data-score
+        put @data-score into the #score
       end
 
       on keydown[key=='h'] 
@@ -151,7 +188,7 @@
     <main class="flex flex-col items-center gap-4 mt-4"> 
       <div>
         Score:
-        <span id="score"></span>
+        <span id="score">0</span>
       </div>
       <table class="border-spacing-0 border-collapse">
         <tbody>
@@ -160,10 +197,8 @@
               <template _="install Repeat(amount: 10)">
                 <td class="border border-neutral">
                   <span class="flex h-7 w-7 items-center justify-center">
-                    <!--style="content: attr(data-cell)"-->
                     <pre
                       data-cell='empty'
-                      data-direction='right'
                       class="text-lg"
                       _="
                         init
@@ -176,13 +211,7 @@
                           if @data-x == 0 and @data-y == 0 
                             put 'snake' into @data-cell
                             put '0' into @data-snake-index
-                          end
-
-                          -- temporary
-                          if @data-x == 0 and @data-y == 1 
-                            put 'snake' into @data-cell
-                            put '1' into @data-snake-index
-                            put 'up' into @data-direction
+                            put 'right' into @data-direction
                           end
 
                           if @data-x == 9 and @data-y == 9 
@@ -194,6 +223,23 @@
                           if event.detail.mutationList[0].attributeName == 'class'
                             exit
                           end
+                          set old_cell to event.detail.mutationList[0].oldValue
+                          if old_cell == 'food'
+                            if @data-snake-index == '0'
+                              send snake:consume to the closest <body />
+                            else
+                              log `error: something besides the snake head consumed food`
+                              log @data-cell
+                            end
+                          end
+                          if 
+                            @data-cell == 'snake' and 
+                            @data-snake-index != '0' and 
+                            (@data-direction == 'up' or @data-direction == 'down')
+                            add .rotate-90
+                          else
+                            remove .rotate-90
+                          end
 
                           if @data-cell == 'empty' 
                             put ' ' into me
@@ -203,14 +249,7 @@
                             if @data-snake-index == '0'
                               put snakeIcon(@data-direction) into me
                             else
-                              log 'culprit'
-                              log event
                               put '=' into me
-                              if @data-direction == 'up' or @data-direction == 'down'
-                                add .rotate-90
-                              else
-                                remove .rotate-90
-                              end
                             end
                           end
                         end
