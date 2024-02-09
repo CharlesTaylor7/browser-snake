@@ -111,8 +111,8 @@
 
         set $time.previous to time
 
-        // the snake moves every second minus 10ms for each speed level
-        if $time.elapsed > (1000 - (@data-speed * 10))
+        // the snake moves every 750ms minus 20ms for each speed level
+        if $time.elapsed > (750 - (@data-speed * 20))
           move()
         end
 
