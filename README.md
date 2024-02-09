@@ -10,3 +10,9 @@ cd hypersnake
 npx serve .
 ```
 [hyperscript]: https://hyperscript.org/
+
+
+## TODO
+
+Mobile friendly screen size.
+Buttons
