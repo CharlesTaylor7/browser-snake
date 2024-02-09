@@ -23,8 +23,12 @@
           end
         end
       end
-      behavior SnakeButton
+      behavior SnakeButton(direction)
+        on click
+          steer(direction)
+        end
         on touchstart
+          steer(direction)
           log 'double time'
           add @data-double-time to closest <body />
         end
@@ -282,13 +286,13 @@
       </table>
       <section class="grid grid-cols-3" id="controls">
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('up')">▲</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton(direction: 'up')">▲</button>
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('left')">◀</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton(direction: 'left')">◀</button>
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('right')">▶</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton(direction: 'right')">▶</button>
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('down')">▼</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton(direction: 'down')">▼</button>
         <div class=""></div>
       </section>
     </main>
