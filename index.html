@@ -30,15 +30,15 @@
         on touchstart
           steer(direction)
           log 'double time'
-          add @data-double-time to closest <body />
+          add @data-button-hold to closest <body />
         end
         on touchcancel
           log 'cancel'
-          remove @data-double-time from closest <body />
+          remove @data-button-hold from closest <body />
         end
         on touchend 
           log 'end double time'
-          remove @data-double-time from closest <body />
+          remove @data-button-hold from closest <body />
         end
       end
 
@@ -138,11 +138,11 @@
 
         set $time.previous to time
 
-        // the snake moves every 750ms minus 20ms for each speed level
-        set threshold to 750 - (@data-speed * 20)
+        // the snake moves every 100ms minus 20ms for each speed level
+        set threshold to 1000 - (@data-speed * 20)
 
-        if @data-double-time 
-          set threshold to threshold / 2
+        if @data-button-hold and 85 < threshold
+          set threshold to 85
         end
 
         if $time.elapsed > threshold
