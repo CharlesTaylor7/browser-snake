@@ -159,20 +159,25 @@
     tabindex="-1"
     _="
       on snake:init
+        -- reset dom
+        remove <button#play-again /> in me
+        remove @disabled from <#controls button/> in me
         add @data-cell=empty to <[data-cell]/> in me
 
+        -- set snake position
         get the #cell-0-0 in me
         add @data-cell=snake to it
         add @data-snake-index='0' to it
         add @data-direction='right' to it
 
+        -- set food position
         randomizeFood()
 
+        -- set globals
         add @data-direction='right'
         add @data-speed='0'
         add @data-score='0'
         set $time to { elapsed: 0, previous: 0, paused: false }
-        -- set $time.paused to true -- TEMPORARY
         call requestAnimationFrame(animate)
       end
 
@@ -187,10 +192,10 @@
         set $time.paused to true
         alert('game over')
         add @disabled to <#controls button/>
-        make <button.btn.btn-accent />
+        make <button#play-again.btn.btn-accent />
         put 'Play again?' into it
         add @_='on click send snake:init to closest <body/>' to it
-        put it after #controls
+        put it before #controls
       end
 
       on mutation[target==me] of @data-score
