@@ -23,6 +23,20 @@
           end
         end
       end
+      behavior SnakeButton
+        on touchstart
+          log 'double time'
+          add @data-double-time to closest <body />
+        end
+        on touchcancel
+          log 'cancel'
+          remove @data-double-time from closest <body />
+        end
+        on touchend 
+          log 'end double time'
+          remove @data-double-time from closest <body />
+        end
+      end
 
       def snakeIcon(direction)
         if direction == 'up' 
@@ -121,7 +135,13 @@
         set $time.previous to time
 
         // the snake moves every 750ms minus 20ms for each speed level
-        if $time.elapsed > (750 - (@data-speed * 20))
+        set threshold to 750 - (@data-speed * 20)
+
+        if @data-double-time 
+          set threshold to threshold / 2
+        end
+
+        if $time.elapsed > threshold
           move()
         end
 
@@ -262,13 +282,13 @@
       </table>
       <section class="grid grid-cols-3" id="controls">
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="on click steer('up')">▲</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('up')">▲</button>
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="on click steer('left')">◀</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('left')">◀</button>
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="on click steer('right')">▶</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('right')">▶</button>
         <div class=""></div>
-        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="on click steer('down')">▼</button>
+        <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton on click steer('down')">▼</button>
         <div class=""></div>
       </section>
     </main>
