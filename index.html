@@ -128,7 +128,7 @@
       end
 
       def animate(time)
-        if not @data-paused
+        if not $time.paused
           get $time.elapsed as Number
           set $time.elapsed to it + (time - $time.previous)
         end
@@ -157,13 +157,22 @@
   <body 
     autofocus 
     tabindex="-1"
-    data-speed="0"
-    data-score="0"
-    data-direction='right'
     _="
       on snake:init
+        add @data-cell=empty to <[data-cell]/> in me
+
+        get the #cell-0-0 in me
+        add @data-cell=snake to it
+        add @data-snake-index='0' to it
+        add @data-direction='right' to it
+
         randomizeFood()
-        set $time to { elapsed: 0, previous: 0 }
+
+        add @data-direction='right'
+        add @data-speed='0'
+        add @data-score='0'
+        set $time to { elapsed: 0, previous: 0, paused: false }
+        -- set $time.paused to true -- TEMPORARY
         call requestAnimationFrame(animate)
       end
 
@@ -175,8 +184,13 @@
       end
 
       on snake:collision
-        add @data-paused
+        set $time.paused to true
         alert('game over')
+        add @disabled to <#controls button/>
+        make <button.btn.btn-accent />
+        put 'Play again?' into it
+        add @_='on click send snake:init to closest <body/>' to it
+        put it after #controls
       end
 
       on mutation[target==me] of @data-score
@@ -198,9 +212,7 @@
       on keydown[key=='s'] steer('down') end
       on keydown[key=='d'] steer('right') end
 
-      on keydown[key=='Enter']
-        toggle @data-paused
-      end
+      on keydown[key=='Enter'] set $time.paused to not $time.paused end
     "
   >
     <main class="flex flex-col items-center gap-4 mt-4"> 
@@ -226,12 +238,6 @@
                           set @data-y to its@data-index
                           put `cell-${@data-x}-${@data-y}` into my@id
 
-                          if @data-x == 0 and @data-y == 0 
-                            put 'snake' into @data-cell
-                            put '0' into @data-snake-index
-                            put 'right' into @data-direction
-                          end
-
                           if @data-x == 9 and @data-y == 9 
                             send snake:init to the closest <body />
                           end
@@ -245,9 +251,6 @@
                           if old_cell == 'food'
                             if @data-snake-index == '0'
                               send snake:consume to the closest <body />
-                            else
-                              log `error: something besides the snake head consumed food`
-                              log @data-cell
                             end
                           end
                           if 
