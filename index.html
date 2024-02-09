@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-theme='dark'>
   <head>
     <title>Snake</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#128013;</text></svg>">
@@ -7,6 +7,9 @@
 
     <!-- Docs: https://hyperscript.org/docs -->
     <script src="//unpkg.com/hyperscript.org@0.9.12"></script>
+
+    <!-- Docs: https://daisyui.com/components/ -->
+    <link href="//cdn.jsdelivr.net/npm/daisyui@4.6.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="//cdn.tailwindcss.com"></script>
 
     <script type="text/hyperscript">
@@ -257,9 +260,16 @@
           </template>
         </tbody>
       </table>
-      <section id="controls">
-        <button>
-        </button>
+      <section class="grid grid-cols-3" id="controls">
+        <div class=""></div>
+        <button class="btn btn-lg btn-primary" _="on click steer('up')">▲</button>
+        <div class=""></div>
+        <button class="btn btn-lg btn-primary" _="on click steer('left')">◀</button>
+        <div class=""></div>
+        <button class="btn btn-lg btn-primary" _="on click steer('right')">▶</button>
+        <div class=""></div>
+        <button class="btn btn-lg btn-primary" _="on click steer('down')">▼</button>
+        <div class=""></div>
       </section>
     </main>
   </body>
