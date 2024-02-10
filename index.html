@@ -17,11 +17,14 @@
           display: grid;
         }
       }
+      [data-score]::after {
+        content: attr(data-score);
+      }
       #controls {
-        transition: opacity 2s ease;
+        transition: opacity 400ms ease;
       }
       #grid {
-        transition: opacity 2s ease;
+        transition: opacity 400ms ease;
       }
       @keyframes spin { 100% { transform: rotate(360deg) } }
       #loading {
@@ -177,7 +180,6 @@
     tabindex="-1"
     _="
       on snake:init
-        wait 2s
         -- reset dom
         add .hidden to <#play-again /> in me
         add .hidden to <#loading /> in me
@@ -197,16 +199,14 @@
         randomizeFood()
 
         -- set globals
-        add @data-direction='right'
-        add @data-speed='0'
-        add @data-score='0'
+        set $snake to { direction: 'right', speed: 0, grow: false }
         call requestAnimationFrame(animate)
       end
 
       on snake:consume
-        increment @data-speed
-        increment @data-score
-        add @data-grow-snake
+        increment $snake.speed
+        increment <[data-score]/>'s @data-score
+        set $snake.grow to true
         randomizeFood()
       end
 
@@ -218,10 +218,6 @@
         put 'Play again?' into it
         add @_='on click send snake:init to closest <body/>' to it
         put it before #controls
-      end
-
-      on mutation[target==me] of @data-score
-        put @data-score into the #score
       end
 
       on keydown[key=='h'] steer('left') end
@@ -247,7 +243,7 @@
     <main class="flex flex-col items-center gap-4 mt-4"> 
       <div>
         Score:
-        <span id="score">0</span>
+        <span data-score='0'></span>
       </div>
       <div 
         id="loading" 
