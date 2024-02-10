@@ -133,11 +133,15 @@
       end
 
       def animate(time)
-        if not $time.paused
-          get $time.elapsed as Number
-          set $time.elapsed to it + (time - $time.previous)
+        if $time is null 
+          set $time to { previous: time, elapsed: 0 }
+        end
+        if $time.paused
+          exit
         end
 
+        set $delta to time - $time.previous
+        set $time.elapsed to $time.elapsed + $delta
         set $time.previous to time
 
         // the snake moves every 100ms minus 20ms for each speed level
@@ -150,7 +154,7 @@
         if $time.elapsed > threshold
           move()
         end
-
+        
         call requestAnimationFrame(animate)
       end
      
@@ -165,7 +169,7 @@
     _="
       on snake:init
         -- reset dom
-        remove <button#play-again /> in me
+        add .hidden to <#play-again /> in me
         remove @disabled from <#controls button/> in me
         add @data-cell=empty to <[data-cell]/> in me
 
@@ -182,7 +186,6 @@
         add @data-direction='right'
         add @data-speed='0'
         add @data-score='0'
-        set $time to { elapsed: 0, previous: 0, paused: false }
         call requestAnimationFrame(animate)
       end
 
@@ -222,7 +225,10 @@
       on keydown[key=='s'] steer('down') end
       on keydown[key=='d'] steer('right') end
 
-      on keydown[key=='Enter'] set $time.paused to not $time.paused end
+      on keydown[key=='Enter'] 
+        set $time.paused to not $time.paused 
+        if not $time.paused
+      end
     "
   >
     <main class="flex flex-col items-center gap-4 mt-4"> 
@@ -294,7 +300,14 @@
           </template>
         </tbody>
       </table>
-      <section class="invisible grid grid-cols-3" id="controls">
+      <button 
+        id="play-again" 
+        class="hidden btn btn-accent"
+        _='on click send snake:init to closest <body/>'
+      >
+        Play again?
+      </button>
+      <section id="controls" class="invisible grid grid-cols-3">
         <div class=""></div>
         <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton(direction: 'up')">▲</button>
         <div class=""></div>
