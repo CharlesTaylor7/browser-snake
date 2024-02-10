@@ -225,13 +225,10 @@
       end
 
       on snake:collision
-        set $time to null
+        stop_animation_loop()
         alert('game over')
         add @disabled to <#controls button/>
-        make <button#play-again.btn.btn-accent />
-        put 'Play again?' into it
-        add @_='on click send snake:init to closest <body/>' to it
-        put it before #controls
+        remove .hidden from #play-again
       end
 
       on keydown[key=='h'] steer('left') end
