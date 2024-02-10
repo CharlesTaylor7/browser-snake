@@ -47,12 +47,12 @@
           steer(direction)
           wait for touchcancel or touchend or 400ms
           if the result is a Number
-            add @data-button-hold to closest <body />
+            set $snake.button_hold to true
           end
         end
 
         on touchcancel or touchend
-          remove @data-button-hold from closest <body />
+          set $snake.button_hold to false
         end
       end
 
@@ -173,7 +173,7 @@
         // the snake moves every 100ms minus 20ms for each speed level
         set threshold to 1000 - ($snake.speed * 20)
 
-        if @data-button-hold and 85 < threshold
+        if $snake.button_hold and 85 < threshold
           set threshold to 85
         end
 
@@ -213,7 +213,7 @@
         randomizeFood()
 
         -- set globals
-        set $snake to { direction: 'right', speed: 0, grow: false }
+        set $snake to { direction: 'right', speed: 0 }
         start_animation_loop()
       end
 
