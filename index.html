@@ -2,7 +2,7 @@
 <html data-theme='dark'>
   <head>
     <title>Snake</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#128013;</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐍</text></svg>">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 
     <!-- Docs: https://hyperscript.org/docs -->
@@ -14,11 +14,20 @@
     <style>
       @media (hover: none) { 
         #controls {
-          visibility: visible;
+          display: grid;
         }
       }
+      #controls {
+        transition: opacity 2s ease;
+      }
+      #grid {
+        transition: opacity 2s ease;
+      }
+      @keyframes spin { 100% { transform: rotate(360deg) } }
+      #loading {
+          animation: spin 2s infinite;
+      }
     </style>
-
     <script type="text/hyperscript">
       behavior Repeat(amount)
         init 
@@ -168,9 +177,14 @@
     tabindex="-1"
     _="
       on snake:init
+        wait 2s
         -- reset dom
         add .hidden to <#play-again /> in me
+        add .hidden to <#loading /> in me
         remove @disabled from <#controls button/> in me
+        remove .opacity-0 from <#controls/> in me
+        remove .opacity-0 from <#grid/> in me
+
         add @data-cell=empty to <[data-cell]/> in me
 
         -- set snake position
@@ -236,7 +250,14 @@
         Score:
         <span id="score">0</span>
       </div>
-      <table class="border-spacing-0 border-collapse">
+      <div 
+        id="loading" 
+        class="flex items-center justify-center text-5xl"
+        style="height: 311px; width: 311px"
+      >
+        🐍
+      </div>
+      <table id="grid" class="opacity-0 border-spacing-0 border-collapse">
         <tbody>
           <template _="install Repeat(amount: 10)">
             <tr class="border border-neutral">
@@ -307,7 +328,7 @@
       >
         Play again?
       </button>
-      <section id="controls" class="invisible grid grid-cols-3">
+      <section id="controls" class="hidden opacity-0 grid-cols-3">
         <div class=""></div>
         <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton(direction: 'up')">▲</button>
         <div class=""></div>
