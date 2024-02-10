@@ -144,17 +144,26 @@
         end
       end
 
+      def stop_animation_loop()
+        set $time to null
+      end
+
       def start_animation_loop()
         set $time to { previous: null, elapsed: 0 }
         call requestAnimationFrame(animate)
       end
 
       def animate(time)
+        // time is stopped
         if $time is null 
           exit
         end
+
+        // we need one empty tick of the clock to calibrate elapsed time
         if $time.previous is null
           set $time.previous to time
+          call requestAnimationFrame(animate)
+          exit
         end
 
         set $delta to time - $time.previous
@@ -242,7 +251,7 @@
 
       on keydown[key=='Enter'] 
         if $time
-          set $time to null
+          stop_animation_loop()
         else
           start_animation_loop()
         end
