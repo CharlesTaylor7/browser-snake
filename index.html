@@ -90,8 +90,8 @@
         for segment in snake
           increment its@data-snake-index
         end
-        if @data-grow-snake
-          remove @data-grow-snake
+        if $snake.grow
+          set $snake.grow to false
         else
           add @data-cell='empty' to the last snake
           remove @data-snake-index from the last snake
@@ -132,24 +132,29 @@
 
         set its@data-cell to 'snake'
         set its@data-snake-index to '0'
-        set its@data-direction to @data-direction
+        set its@data-direction to $snake.direction
       end
 
       def steer(direction)
-        if @data-direction is direction
+        if $snake.direction is direction
           move()
         else
-          set @data-direction to direction
-          set the @data-direction of the <[data-snake-index='0'] /> to direction
+          set $snake.direction to direction
+          put direction into <[data-snake-index='0']/>'s @data-direction
         end
+      end
+
+      def start_animation_loop()
+        set $time to { previous: null, elapsed: 0 }
+        call requestAnimationFrame(animate)
       end
 
       def animate(time)
         if $time is null 
-          set $time to { previous: time, elapsed: 0 }
-        end
-        if $time.paused
           exit
+        end
+        if $time.previous is null
+          set $time.previous to time
         end
 
         set $delta to time - $time.previous
@@ -157,7 +162,7 @@
         set $time.previous to time
 
         // the snake moves every 100ms minus 20ms for each speed level
-        set threshold to 1000 - (@data-speed * 20)
+        set threshold to 1000 - ($snake.speed * 20)
 
         if @data-button-hold and 85 < threshold
           set threshold to 85
@@ -200,7 +205,7 @@
 
         -- set globals
         set $snake to { direction: 'right', speed: 0, grow: false }
-        call requestAnimationFrame(animate)
+        start_animation_loop()
       end
 
       on snake:consume
@@ -211,7 +216,7 @@
       end
 
       on snake:collision
-        set $time.paused to true
+        set $time to null
         alert('game over')
         add @disabled to <#controls button/>
         make <button#play-again.btn.btn-accent />
@@ -236,7 +241,11 @@
       on keydown[key=='d'] steer('right') end
 
       on keydown[key=='Enter'] 
-        set $time.paused to not $time.paused 
+        if $time
+          set $time to null
+        else
+          start_animation_loop()
+        end
       end
     "
   >
@@ -264,11 +273,9 @@
                       class="text-lg"
                       _="
                         init
-                          get the closest <td/> 
-                          set @data-x to its@data-index
-                          get the closest <tr/>
-                          set @data-y to its@data-index
-                          put `cell-${@data-x}-${@data-y}` into my@id
+                          get the closest <td/> then put its@data-index into @data-x
+                          get the closest <tr/> then put its@data-index into @data-y
+                          put `cell-${@data-x}-${@data-y}` into @id
 
                           if @data-x == 9 and @data-y == 9 
                             send snake:init to the closest <body />
