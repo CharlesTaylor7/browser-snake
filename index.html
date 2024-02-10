@@ -11,6 +11,13 @@
     <!-- Docs: https://daisyui.com/components/ -->
     <link href="//cdn.jsdelivr.net/npm/daisyui@4.6.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="//cdn.tailwindcss.com"></script>
+    <style>
+      @media (hover: none) { 
+        #controls {
+          visibility: visible;
+        }
+      }
+    </style>
 
     <script type="text/hyperscript">
       behavior Repeat(amount)
@@ -287,7 +294,7 @@
           </template>
         </tbody>
       </table>
-      <section class="grid grid-cols-3" id="controls">
+      <section class="invisible grid grid-cols-3" id="controls">
         <div class=""></div>
         <button class="btn h-20 w-20 p-0 btn-primary text-4xl" _="install SnakeButton(direction: 'up')">▲</button>
         <div class=""></div>
