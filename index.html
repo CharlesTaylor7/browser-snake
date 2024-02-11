@@ -22,7 +22,7 @@
         color: yellow;
       }
 
-      [data-cell='snake'][data-direction='vertical'] {
+      [data-cell='snake-body'][data-direction='vertical'] {
         transform: rotate(90deg);
       }
 
@@ -134,6 +134,7 @@
         tell #{cell_id} in me
           if your @data-cell is not 'food' and your @data-cell is not 'empty'
             send snake:collision to the closest <body />
+            exit
           end
           set your@data-cell to 'snake-head'
           set your@data-direction to $snake.direction
